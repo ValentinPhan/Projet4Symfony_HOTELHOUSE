@@ -5,8 +5,12 @@ namespace App\Entity;
 use App\Repository\ChambreRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: ChambreRepository::class)]
+#[Vich\Uploadable]
 class Chambre
 {
     #[ORM\Id]
@@ -34,6 +38,12 @@ class Chambre
 
     #[ORM\OneToOne(mappedBy: 'chambre', cascade: ['persist', 'remove'])]
     private ?Commande $commande = null;
+
+    #[Vich\UploadableField(mapping: 'articles', fileNameProperty: 'image')]
+    private $imageFile;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function getId(): ?int
     {
@@ -81,7 +91,7 @@ class Chambre
         return $this->photo;
     }
 
-    public function setPhoto(string $photo): self
+    public function setPhoto(?string $photo): self
     {
         $this->photo = $photo;
 
@@ -125,6 +135,32 @@ class Chambre
         }
 
         $this->commande = $commande;
+
+        return $this;
+    }
+
+    public function getImageFile(): ?File
+    {
+        return $this->imageFile;
+    }
+
+    public function setImageFile(?File $imageFile = null): self
+    {
+        $this->imageFile = $imageFile;
+        if ($this->imageFile instanceof UploadedFile) {
+            $this->updatedAt = new \DateTime();
+        }
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
